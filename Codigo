@@ -1,0 +1,72 @@
+#include <Servo.h> // Inclui a biblioteca para controlar servos
+
+// Variáveis globais para armazenar as leituras dos sensores
+int lerVaga1 = 0;
+int lerVaga2 = 0;
+int pos = 0;
+int lercatraca = 0;
+
+// Função para ler a distância usando um sensor ultrassônico
+long readUltrasonicDistance(int triggerPin, int echoPin) {
+  pinMode(triggerPin, OUTPUT);  // Configura o pino de trigger como saída
+  digitalWrite(triggerPin, LOW); // Limpa o pino de trigger
+  delay(2);
+  digitalWrite(triggerPin, HIGH); // Configura o pino de trigger para HIGH por 10 microsegundos
+  delay(10);
+  digitalWrite(triggerPin, LOW);
+  pinMode(echoPin, INPUT); // Configura o pino de echo como entrada
+  return pulseIn(echoPin, HIGH); // Lê o pino de echo e retorna o tempo de viagem da onda sonora em microsegundos
+}
+
+Servo servo_13; // Cria um objeto servo para controlar o servo motor conectado ao pino 13
+
+void setup() {
+  // Configura os pinos 4, 10, 9 e 5 como saídas
+  pinMode(4, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(9, OUTPUT);
+  pinMode(5, OUTPUT);
+  servo_13.attach(13); // Anexa o servo ao pino 13
+}
+
+void loop() {
+  // Lê as distâncias dos sensores ultrassônicos e converte para centímetros
+  lercatraca = 0.01723 * readUltrasonicDistance(3, 2);
+  lerVaga1 = 0.01723 * readUltrasonicDistance(6, 7);
+  lerVaga2 = 0.01723 * readUltrasonicDistance(12, 11);
+
+  // Verifica se há um objeto na Vaga 1 (distância menor ou igual a 10 cm)
+  if (lerVaga1 <= 10) {
+    digitalWrite(4, LOW);  // Desliga o LED no pino 4
+    digitalWrite(5, HIGH); // Liga o LED no pino 5
+  } else {
+    digitalWrite(4, HIGH); // Liga o LED no pino 4
+    digitalWrite(5, LOW);  // Desliga o LED no pino 5
+  }
+
+  // Verifica se há um objeto na Vaga 2 (distância menor ou igual a 10 cm)
+  if (lerVaga2 <= 10) {
+    digitalWrite(9, LOW);  // Desliga o LED no pino 9
+    digitalWrite(10, HIGH); // Liga o LED no pino 10
+  } else {
+    digitalWrite(9, HIGH); // Liga o LED no pino 9
+    digitalWrite(10, LOW); // Desliga o LED no pino 10
+  }
+
+  // Verifica se há um objeto na catraca (distância menor que 10 cm)
+  if (lercatraca < 10) {
+    // Move o servo de 0 a 150 graus
+    for (pos = 0; pos <= 150; pos += 1) {
+      servo_13.write(pos); // Define a posição do servo
+      delay(15); // Espera 15 ms para o servo atingir a posição
+    }
+    delay(1000); // Espera 1 segundo
+
+    // Move o servo de 150 a 0 graus
+    for (pos = 150; pos >= 0; pos -= 1) {
+      servo_13.write(pos); // Define a posição do servo
+      delay(15); // Espera 15 ms para o servo atingir a posição
+    }
+    delay(1000); // Espera 1 segundo
+  }
+}
